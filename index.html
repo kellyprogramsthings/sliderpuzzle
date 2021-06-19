@@ -1,0 +1,135 @@
+<html>
+  <head>
+    <title>My slider puzzle</title>
+    <style>
+      div#main {
+        width: 600px; 
+        height: 600px;
+        /* position: relative; */
+      }
+      div.box {
+        width: 33%;
+        height: 33%;
+        float: left;
+        border: 0px;
+        margin: 0px;
+        padding: 0px;
+        min-height: 1px;
+        font-size: 300%;
+        text-align: center;
+        margin: auto;
+        color: white;
+        /* position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); */
+      }
+      /* div.box {
+        font-size: 120%;
+        text-align: center;
+        margin: auto;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      } */
+    </style>
+    <script>
+      var emptySlot = null;
+      var emptySlotColor = 'white';
+      var slots = Array(1, 2, 3, 4, 5, 6, 7, 8);
+      var colors = Array("#000000", "#333333", "#666666", "#999999", "#cccccc", "#ff0000", "#00ff00", "#0000ff");
+      var shuffledSlots = null;
+
+      document.addEventListener("DOMContentLoaded", function() {
+        shufflePieces(slots);
+        drawPieces(shuffledSlots, colors);
+        emptySlot = document.getElementById("9");
+        console.log(shuffledSlots);
+        emptySlot.style.backgroundColor = 'white';
+      });
+
+      function shufflePieces(slots) {
+        shuffledSlots = slots
+          .map((a) => ({sort: Math.random(), value: a}))
+          .sort((a, b) => a.sort - b.sort)
+          .map((a) => a.value)
+      }
+
+      function drawPieces(slots, colors) {
+        slots.forEach((element, i) => {
+          console.log("element", element, "color", colors[element - 1]);
+          var piece = document.getElementById(i + 1);
+          piece.textContent = element;
+          piece.style.backgroundColor = colors[element - 1];
+        })
+      }
+
+      function slide(clickedSlot) {
+        console.log("clicked", clickedSlot);
+        //is empty next to the one we clicked on?
+        var integerOfEmptySlot = parseInt(emptySlot.id);
+        var integerOfClickedSlot = parseInt(clickedSlot.id);
+        var backgroundColorOfClickedSlot = clickedSlot.style.backgroundColor;
+        var possibleSlots = Array(
+          integerOfEmptySlot - 1, 
+          integerOfEmptySlot + 1,
+          integerOfEmptySlot - 3,
+          integerOfEmptySlot + 3
+        );
+        var borderingSlots = Array();
+
+        //validate possible empty slots
+        possibleSlots.forEach(element => {
+          if (element < 10 && element > 0) {
+            borderingSlots.push(element);
+          }
+        });
+
+        var nearEmpty = possibleSlots.includes(integerOfClickedSlot);
+        console.log(nearEmpty);
+
+        //move clicked slot to empty and empty clicked slot
+        if (nearEmpty) {
+          var clickedText = clickedSlot.textContent;
+          emptySlot.style.backgroundColor = backgroundColorOfClickedSlot;
+          emptySlot.textContent = clickedText;
+          clickedSlot.style.backgroundColor = 'white';
+          clickedSlot.textContent = null;
+
+          //update emptyslot variable
+          emptySlot = clickedSlot;
+        }
+      }
+      
+      // function upload() {
+      //   var picture = document.getElementById('image');
+      //   img.
+      // }
+
+      // function divideToNine() {
+
+      // }
+    </script>
+  </head>
+
+  <body>
+    <center>
+      <h3>test3</h3>
+      <div id="main">
+      <!-- <button onclick="upload()">Upload a picture</button> -->
+      <!-- <div id="image"><img src="21sq.jpg" width="600" height="600" /></div> -->
+        <div id="1" class="box" style="background-color: #000000;" onClick="slide(this)"></div>
+        <div id="2" class="box" style="background-color: #333333;" onClick="slide(this)"></div>
+        <div id="3" class="box" style="background-color: #666666;" onClick="slide(this)"></div>
+        <div id="4" class="box" style="background-color: #999999;" onClick="slide(this)"></div>
+        <div id="5" class="box" style="background-color: #cccccc;" onClick="slide(this)"></div>
+        <div id="6" class="box" style="background-color: #ff0000;" onClick="slide(this)"></div>
+        <div id="7" class="box" style="background-color: #0000ff;" onClick="slide(this)"></div>
+        <div id="8" class="box" style="background-color: #00ff00;" onClick="slide(this)"></div>
+        <div id="9" class="box" style="background-color: #ffffff;" onClick="slide(this)"></div>
+      </div>
+    </center>
+
+  </body>
+</html>
