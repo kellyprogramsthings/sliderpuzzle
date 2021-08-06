@@ -5,7 +5,6 @@
       div#main {
         width: 600px; 
         height: 600px;
-        /* position: relative; */
       }
       div.box {
         width: 33%;
@@ -19,97 +18,153 @@
         text-align: center;
         margin: auto;
         color: white;
-        /* position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%); */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* transition: all 1s; */
       }
-      /* div.box {
-        font-size: 120%;
-        text-align: center;
-        margin: auto;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      } */
     </style>
     <script>
-      var emptySlot = null;
-      var emptySlotColor = 'white';
-      var slots = Array(1, 2, 3, 4, 5, 6, 7, 8);
-      var colors = Array("#000000", "#333333", "#666666", "#999999", "#cccccc", "#ff0000", "#00ff00", "#0000ff");
-      var shuffledSlots = null;
+      const EMPTY_SLOT_COLOR = '#ffffff';
+      const COLORS = Array(
+        "#000000", 
+        "#333333", 
+        "#666666", 
+        "#999999", 
+        "#cccccc", 
+        "#ff0000", 
+        "#00ff00", 
+        "#0000ff"
+      );
+      // this may be determinable programmically but I don't care
+      // ahhh, when you declare two arrays two different ways...
+      const POSSIBLE_SLOTS_TO_MOVE = [
+        [2, 4],
+        [1, 3, 5],
+        [2, 6],
+        [1, 5, 7],
+        [2, 4, 6, 8],
+        [3, 5, 9],
+        [4, 8],
+        [5, 7, 9],
+        [6, 8]
+      ];
+
+      let emptySlot = 9;
+      let shuffledSlots = null;
 
       document.addEventListener("DOMContentLoaded", function() {
-        shufflePieces(slots);
-        drawPieces(shuffledSlots, colors);
+        let slots = shufflePieces();
+        console.log("why is this null", slots);
+        drawPieces(slots, COLORS);
         emptySlot = document.getElementById("9");
-        console.log(shuffledSlots);
-        emptySlot.style.backgroundColor = 'white';
+        emptySlot.style.backgroundColor = EMPTY_SLOT_COLOR;
       });
 
-      function shufflePieces(slots) {
-        shuffledSlots = slots
-          .map((a) => ({sort: Math.random(), value: a}))
-          .sort((a, b) => a.sort - b.sort)
-          .map((a) => a.value)
+      function shufflePieces() {
+        // DO NOT SHUFFLE THE EMPTY SLOT
+        const unshuffledSlots = [1, 2, 3, 4, 5, 6, 7, 8];
+        let shuffledSlots = unshuffledSlots.sort((a, b) => 0.5 - Math.random());
+        // add back the empty slot, should not affect the isSolvable check
+        shuffledSlots.push(0);
+        console.log("shuffled: ", shuffledSlots);
+        if (!isSolvable(shuffledSlots)) {
+          location.reload(true);
+          console.log("wasn't solvable, trying again");
+          // console.log("shuffled:", shuffledSlots);
+          shufflePieces();
+        }
+        else {
+          console.log("supposedly this is solvable");
+          // console.log("shuffled:", shuffledSlots);
+          console.log("what is shuffledSlots right before we return it?", shuffledSlots);  
+          return shuffledSlots;
+        }
       }
 
-      function drawPieces(slots, colors) {
+      // this code is STOLEN FROM THE INTERNET SO IF IT DOESN'T WORK IT WASN'T ME
+      function isSolvable(arr) {
+        let number_of_inv = 0;
+        // get the number of inversions
+        for(let i = 0; i < arr.length; i++){
+          // i picks the first element
+          for(let j = i + 1; j < arr.length; j++) {
+            // check that an element exist at index i and j, then check that element at i > at j
+            if((arr[i] && arr[j]) && arr[i] > arr[j]) number_of_inv++;
+          }
+        }
+        // if the number of inversions is even the puzzle is solvable
+        return (number_of_inv % 2 == 0);
+      }
+
+      function drawPieces(slots, COLORS) {
+        console.log("what happened here? slots: ", slots);
         slots.forEach((element, i) => {
-          console.log("element", element, "color", colors[element - 1]);
           var piece = document.getElementById(i + 1);
-          piece.textContent = element;
-          piece.style.backgroundColor = colors[element - 1];
-        })
+          if (element !== 0) {
+            piece.textContent = element;
+            piece.style.backgroundColor = COLORS[element - 1];
+          }
+        });
       }
 
       function slide(clickedSlot) {
-        console.log("clicked", clickedSlot);
         //is empty next to the one we clicked on?
-        var integerOfEmptySlot = parseInt(emptySlot.id);
-        var integerOfClickedSlot = parseInt(clickedSlot.id);
+        const integerOfEmptySlot = parseInt(emptySlot.id);
+        const integerOfClickedSlot = parseInt(clickedSlot.id);
         var backgroundColorOfClickedSlot = clickedSlot.style.backgroundColor;
-        var possibleSlots = Array(
-          integerOfEmptySlot - 1, 
-          integerOfEmptySlot + 1,
-          integerOfEmptySlot - 3,
-          integerOfEmptySlot + 3
-        );
-        var borderingSlots = Array();
-
-        //validate possible empty slots
-        possibleSlots.forEach(element => {
-          if (element < 10 && element > 0) {
-            borderingSlots.push(element);
-          }
-        });
-
+        var possibleSlots = POSSIBLE_SLOTS_TO_MOVE[integerOfEmptySlot - 1];
         var nearEmpty = possibleSlots.includes(integerOfClickedSlot);
-        console.log(nearEmpty);
 
-        //move clicked slot to empty and empty clicked slot
+        // move clicked slot to empty and empty clicked slot
         if (nearEmpty) {
-          var clickedText = clickedSlot.textContent;
-          emptySlot.style.backgroundColor = backgroundColorOfClickedSlot;
-          emptySlot.textContent = clickedText;
-          clickedSlot.style.backgroundColor = 'white';
-          clickedSlot.textContent = null;
+          let style;
+          if (integerOfClickedSlot < integerOfEmptySlot) {
+          // down versus right
+            style = integerOfClickedSlot + 3 === integerOfEmptySlot 
+              ? "translateY(198px)" 
+              : "translateX(198px)"
+            // if (integerOfClickedSlot + 3 === integerOfEmptySlot) {
+            //   console.log("we're moving down?");
+            // }
+            // else {
+            //   console.log("we're moving right?");
+            // }
+            //clickedSlot.style.transform = "translateY(199px)";
+          }
+          else {
+            style = integerOfClickedSlot - 3 === integerOfEmptySlot
+              ? "translateY(-198px)"
+              : "translateX(-198px)"
+          }
+          clickedSlot.style.transform = style;
+          clickedSlot.style.transition = ".3s";
+          //console.log(window.getComputedStyle(clickedSlot));
 
-          //update emptyslot variable
-          emptySlot = clickedSlot;
+          setTimeout(() => {
+            clickedSlot.style.transform = "none";
+            clickedSlot.style.transition = "0s";
+            var clickedText = clickedSlot.textContent;
+            emptySlot.style.backgroundColor = backgroundColorOfClickedSlot;
+            emptySlot.textContent = clickedText;
+            clickedSlot.style.backgroundColor = EMPTY_SLOT_COLOR;
+            clickedSlot.textContent = null;
+
+            //update emptyslot variable
+            emptySlot = clickedSlot;
+          }, 300)
         }
+        // if (nearEmpty) {
+        //   var clickedText = clickedSlot.textContent;
+        //   emptySlot.style.backgroundColor = backgroundColorOfClickedSlot;
+        //   emptySlot.textContent = clickedText;
+        //   clickedSlot.style.backgroundColor = EMPTY_SLOT_COLOR;
+        //   clickedSlot.textContent = null;
+
+        //   //update emptyslot variable
+        //   emptySlot = clickedSlot;
+        // }
       }
-      
-      // function upload() {
-      //   var picture = document.getElementById('image');
-      //   img.
-      // }
-
-      // function divideToNine() {
-
-      // }
     </script>
   </head>
 
@@ -117,8 +172,6 @@
     <center>
       <h3>Slider Puzzle that almost kind of mostly works</h3>
       <div id="main">
-      <!-- <button onclick="upload()">Upload a picture</button> -->
-      <!-- <div id="image"><img src="21sq.jpg" width="600" height="600" /></div> -->
         <div id="1" class="box" style="background-color: #000000;" onClick="slide(this)"></div>
         <div id="2" class="box" style="background-color: #333333;" onClick="slide(this)"></div>
         <div id="3" class="box" style="background-color: #666666;" onClick="slide(this)"></div>
