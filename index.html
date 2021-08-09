@@ -21,7 +21,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        /* transition: all 1s; */
       }
     </style>
     <script>
@@ -36,7 +35,6 @@
         "#00ff00", 
         "#0000ff"
       );
-      // this may be determinable programmically but I don't care
       // ahhh, when you declare two arrays two different ways...
       const POSSIBLE_SLOTS_TO_MOVE = [
         [2, 4],
@@ -55,29 +53,25 @@
 
       document.addEventListener("DOMContentLoaded", function() {
         let slots = shufflePieces();
-        console.log("why is this null", slots);
         drawPieces(slots, COLORS);
         emptySlot = document.getElementById("9");
         emptySlot.style.backgroundColor = EMPTY_SLOT_COLOR;
       });
 
       function shufflePieces() {
+        // this is broken due to some sort of race condition, I faked it by
+        // reloading the page until it worked on the first try
+
         // DO NOT SHUFFLE THE EMPTY SLOT
         const unshuffledSlots = [1, 2, 3, 4, 5, 6, 7, 8];
         let shuffledSlots = unshuffledSlots.sort((a, b) => 0.5 - Math.random());
         // add back the empty slot, should not affect the isSolvable check
         shuffledSlots.push(0);
-        console.log("shuffled: ", shuffledSlots);
         if (!isSolvable(shuffledSlots)) {
           location.reload(true);
-          console.log("wasn't solvable, trying again");
-          // console.log("shuffled:", shuffledSlots);
           shufflePieces();
         }
         else {
-          console.log("supposedly this is solvable");
-          // console.log("shuffled:", shuffledSlots);
-          console.log("what is shuffledSlots right before we return it?", shuffledSlots);  
           return shuffledSlots;
         }
       }
@@ -98,7 +92,6 @@
       }
 
       function drawPieces(slots, COLORS) {
-        console.log("what happened here? slots: ", slots);
         slots.forEach((element, i) => {
           var piece = document.getElementById(i + 1);
           if (element !== 0) {
@@ -120,17 +113,9 @@
         if (nearEmpty) {
           let style;
           if (integerOfClickedSlot < integerOfEmptySlot) {
-          // down versus right
             style = integerOfClickedSlot + 3 === integerOfEmptySlot 
               ? "translateY(198px)" 
               : "translateX(198px)"
-            // if (integerOfClickedSlot + 3 === integerOfEmptySlot) {
-            //   console.log("we're moving down?");
-            // }
-            // else {
-            //   console.log("we're moving right?");
-            // }
-            //clickedSlot.style.transform = "translateY(199px)";
           }
           else {
             style = integerOfClickedSlot - 3 === integerOfEmptySlot
@@ -139,7 +124,6 @@
           }
           clickedSlot.style.transform = style;
           clickedSlot.style.transition = ".3s";
-          //console.log(window.getComputedStyle(clickedSlot));
 
           setTimeout(() => {
             clickedSlot.style.transform = "none";
@@ -154,16 +138,6 @@
             emptySlot = clickedSlot;
           }, 300)
         }
-        // if (nearEmpty) {
-        //   var clickedText = clickedSlot.textContent;
-        //   emptySlot.style.backgroundColor = backgroundColorOfClickedSlot;
-        //   emptySlot.textContent = clickedText;
-        //   clickedSlot.style.backgroundColor = EMPTY_SLOT_COLOR;
-        //   clickedSlot.textContent = null;
-
-        //   //update emptyslot variable
-        //   emptySlot = clickedSlot;
-        // }
       }
     </script>
   </head>
